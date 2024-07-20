@@ -13,7 +13,9 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import jwt, JWTError
 import os
 
-from models.User import User
+from models import User
+
+import Main
 from Database import SessionLocal
 
 
@@ -22,8 +24,8 @@ router = APIRouter(
     tags=['Authentication']
 )
 
-SECRET_KEY = os.environ.get('SECRET_KEY')
-ALGORITHM = os.environ.get('ALGORITHM')
+SECRET_KEY = os.environ['SECRET_KEY']
+ALGORITHM = os.environ['ALGORITHM']
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/token')
 
@@ -34,6 +36,7 @@ class CreateUserRequest(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
 
 def get_db():
     db = SessionLocal()
@@ -68,7 +71,7 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Could not validate user.')
 
     token = create_access_token(user.email, user.id, timedelta(minutes=30))
-    return {'access_token': token, 'token_type': 'bearer'}
+    return {'access_token': token, 'token_type': 'Bearer'}
 
 def authenticate_user(username: str, password: str, db):
     user = db.query(User).filter(User.email == username).first()
