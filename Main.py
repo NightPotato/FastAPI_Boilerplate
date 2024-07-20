@@ -15,7 +15,6 @@ app = FastAPI()
 app.include_router(routers.Webhooks.router)
 app.include_router(routers.Auth.router)
 
-
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
