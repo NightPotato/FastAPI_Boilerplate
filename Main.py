@@ -9,7 +9,15 @@ from typing import Union
 from fastapi import FastAPI, Request
 import routers.Webhooks
 import routers.Auth
+import models
+from Database import SessionLocal, engine
+import logging
 
+# TODO: Find a better way to fix passlib version check error. This will be patched in v1.7.5 whenever its released.
+logging.getLogger('passlib').setLevel(logging.ERROR)
+
+# Automatically Create Tables for the Models
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 app.include_router(routers.Webhooks.router)
