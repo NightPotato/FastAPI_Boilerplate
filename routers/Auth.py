@@ -1,7 +1,3 @@
-#
-# REST API authentication using OAuth2 or Basic Authentication
-#
-
 from datetime import timedelta, datetime, timezone
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException

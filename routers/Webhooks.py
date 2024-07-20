@@ -1,6 +1,3 @@
-#
-# Webhook routes for getting 3rd party event information.
-#
 
 from fastapi import APIRouter, Request
 
