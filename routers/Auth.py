@@ -14,10 +14,7 @@ from jose import jwt, JWTError
 import os
 
 from models import User
-
-import Main
 from Database import SessionLocal
-
 
 router = APIRouter(
     prefix='/auth',
@@ -44,6 +41,34 @@ def get_db():
         yield db
     finally:
         db.close()
+
+async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get('sub')
+        user_id: int = payload.get('id')
+        if email is None or user_id is None:
+            print(f'{email}, {user_id}', flush=True)
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Could not validate user.')
+        return {'email': email, 'id': user_id}
+    except JWTError as e:
+        print(f'JWTException: {e}', flush=True)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Could not validate user.')
+
+def authenticate_user(username: str, password: str, db):
+    user = db.query(User).filter(User.email == username).first()
+    if not user:
+        return False
+    if not bcrypt_context.verify(password, user.hashed_password):
+        return False
+    return user
+
+def create_access_token(email: str, user_id: int, expires_delta: timedelta):
+    encode = {'sub': email, 'id': user_id}
+    expires = datetime.now(timezone.utc) + expires_delta
+    encode.update({'exp': expires})
+    return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
+
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
@@ -72,17 +97,3 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
 
     token = create_access_token(user.email, user.id, timedelta(minutes=30))
     return {'access_token': token, 'token_type': 'Bearer'}
-
-def authenticate_user(username: str, password: str, db):
-    user = db.query(User).filter(User.email == username).first()
-    if not user:
-        return False
-    if not bcrypt_context.verify(password, user.hashed_password):
-        return False
-    return user
-
-def create_access_token(email: str, user_id: int, expires_delta: timedelta):
-    encode = {'sub': email, 'id': user_id}
-    expires = datetime.now(timezone.utc)
-    encode.update({'exp': expires})
-    return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
