@@ -4,12 +4,10 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 
-#
-# os variable is returning None instead of value. I forget how .env files work in python.
-# SQLALCHEMY_DB_URL = os.getenv('DB_URL')
-SQLALCHEMY_DB_URL = 'sqlite:///./example.db'
+SQLALCHEMY_DB_URL = os.environ['DB_URL']
 # SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db" # Example for PostgresSQL
 
+# TODO: Remove connect_args={"check_same_thread": False} as its only needed for Sqlite Databases.
 engine = create_engine(
     SQLALCHEMY_DB_URL, connect_args={'check_same_thread': False}
 )
